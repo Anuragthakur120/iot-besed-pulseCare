@@ -1,0 +1,58 @@
+name: PulseCare Continuous Integration
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate:
+    name: Lint, Test & Build
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Run Code Linter
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run Backend & Database Test Suites
+        env:
+          NODE_ENV: test
+          PORT: 5001
+          MONGODB_URI: mongodb://localhost:27017/pulsecare-test
+          JWT_ACCESS_SECRET: test_jwt_access_secret_super_long_key_32_chars
+          JWT_REFRESH_SECRET: test_jwt_refresh_secret_super_long_key_32_chars
+          DEVICE_HMAC_SECRET: test_device_hmac_master_secret_key_32_chars
+          ENCRYPTION_KEY_HEX: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          COOKIE_SECRET: test_cookie_signing_secret_random_salt_1234
+        run: npm test --workspace=backend
+
+      - name: Run Frontend Component & Unit Tests (Vitest)
+        run: npm test --workspace=frontend
+
+      - name: Build Production Frontend Assets (Vite)
+        run: npm run build --workspace=frontend

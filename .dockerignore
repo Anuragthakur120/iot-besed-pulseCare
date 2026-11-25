@@ -1,0 +1,26 @@
+# ==============================================================================
+# PulseCare – Docker Build Ignore
+# ==============================================================================
+node_modules
+.git
+.github
+.vscode
+.idea
+.env
+.env.*
+!.env.example
+*.log
+coverage
+test-results
+playwright-report
+docs
+e2e
+firmware
+*.md
+!README.md
+.DS_Store
+Thumbs.db
+docker-data
+dump
+mongo_data
+backend/uploads

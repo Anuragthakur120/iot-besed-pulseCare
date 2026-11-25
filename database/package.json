@@ -1,0 +1,17 @@
+{
+  "name": "@pulsecare/database",
+  "version": "1.0.0",
+  "description": "Mongoose database connection and schemas for PulseCare",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": "./src/index.js",
+  "scripts": {
+    "seed": "node src/seed/seed.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7",
+    "mongoose": "^8.10.0",
+    "uuid": "^10.0.0"
+  }
+}

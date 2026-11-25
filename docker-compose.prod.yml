@@ -1,0 +1,80 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: pulsecare-mongo-prod
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-pulsecare}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-ChangeMeSecurePassword123!}
+    volumes:
+      - mongo_data_prod:/data/db
+    networks:
+      - pulsecare-prod-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: pulsecare-backend-prod
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGODB_URI: ${MONGODB_URI:-mongodb://admin:ChangeMeSecurePassword123!@mongo:27017/pulsecare?authSource=admin}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-https://pulsecare.hospital.org}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      DEVICE_HMAC_SECRET: ${DEVICE_HMAC_SECRET}
+      ENCRYPTION_KEY_HEX: ${ENCRYPTION_KEY_HEX}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM:-noreply@pulsecare.hospital.org}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - pulsecare-prod-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-}
+        VITE_SOCKET_URL: ${VITE_SOCKET_URL:-}
+    container_name: pulsecare-frontend-prod
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - pulsecare-prod-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mongo_data_prod:
+    driver: local
+
+networks:
+  pulsecare-prod-net:
+    driver: bridge

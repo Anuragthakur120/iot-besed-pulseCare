@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --hospital-bg: #F6F8FB;
+    --hospital-card: #FFFFFF;
+    --hospital-border: #E5EAF1;
+    --hospital-text: #0B1F3A;
+    --hospital-muted: #64748B;
+  }
+
+  .dark {
+    --hospital-bg: #070e19;
+    --hospital-card: #0c1626;
+    --hospital-border: #1a2a40;
+    --hospital-text: #f0f4f9;
+    --hospital-muted: #8b9bb4;
+  }
+
+  body {
+    background-color: var(--hospital-bg);
+    color: var(--hospital-text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    transition: background-color 200ms ease, color 200ms ease;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Tabular numbers for vital signs & medical monitors */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  /* Accessible focus styling */
+  *:focus-visible {
+    outline: 2px solid #14B8A6 !important;
+    outline-offset: 2px !important;
+  }
+}
+
+/* ECG Animation for Left Auth Panel & Live Monitored Nodes */
+@keyframes ecgPulse {
+  0% { stroke-dashoffset: 600; opacity: 0.3; }
+  50% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: -600; opacity: 0.3; }
+}
+
+.animate-ecg {
+  stroke-dasharray: 600;
+  animation: ecgPulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.7; }
+}
+
+.animate-heartbeat {
+  animation: pulseGlow 1.2s ease-in-out infinite;
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
